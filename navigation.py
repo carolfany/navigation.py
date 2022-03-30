@@ -114,7 +114,7 @@ def navigation():
 		R_menor = 100 
 		L_menor = 100
 		frente = 100
-    		theta_menor = 0
+    	theta_menor = 0
     
     	for i in range(0, len(vet)): 
 			d = vet[i]   
