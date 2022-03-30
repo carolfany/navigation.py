@@ -43,6 +43,7 @@ estado = 'none'
 
 
 
+
 def callback_imu(imu): # Lê a IMU do robô e transforma seus valores de quarternion p/ ângulos de Euler 
 	global q_x
 	q_x = imu.orientation.x
@@ -93,7 +94,7 @@ def navigation():
 
 	while not rospy.is_shutdown():    
 		#vel.linear.x = 0.8
-    		vel.linear.y = 0
+    	vel.linear.y = 0
 		vel.linear.z = 0
 		vel.angular.x = 0
 		vel.angular.y = 0
@@ -114,10 +115,12 @@ def navigation():
 		R_menor = 100 
 		L_menor = 100
 		frente = 100
-    		theta_menor = 0
+    	theta_menor = 0
     
     	for i in range(0, len(vet)): 
-			d = vet[i]   
+			d = vet[i] 
+			dFront = vet[i] - 0.3
+			dBack = vet[i] + 0.3
 			if(math.isnan(d)): # Se uma das distâncias for não numérica (nan), passa pra próxima
 				continue 
 			teta = angle_min + i * angle_increment # Calcula o valor do ângulo teta
@@ -127,46 +130,52 @@ def navigation():
 			if ((teta < 0) and (teta > -3*pi/4)): # Lado direito do robô, ignorando a traseira dele 
 				if (d < R_menor) and (d > 0): # Procura a menor distância e salva ela na variável R_menor
 					R_menor = d	
+					R_menorF = d - 0.3
+					R_menorB = d + 0.3
 			if ((teta < 3*pi/4) and (teta > 0)): # Lado esquerdo do robô, ignorando a traseira dele
 				if (d < L_menor) and (d > 0):  # Procura a menor distância e salva ela na variável L_menor
 					L_menor = d
+					L_menorF = d - 0.3
+					L_menorB = d + 0.3
 			continue
 		
     	error_laser = L_menor - R_menor # Calcula a diferença das distâncias entre o robô e cada parede.
+		error_laserF = L_menorF - R_menorF
+		error_laserB = L_menorB - R_menorB
     
     	a = rospy.get_param('a') # Constante para definir importância do Laser
     
 	#estado = 'StandardControl'
 	if (estado == 'StandardControl'):
-      		print 'Standard Navigation ON'
-    		error = a*(error_laser*250) + (error_imu*10/4) #normaliza e soma os erros
-      		kp = rospy.get_param('kp')
+      	print 'Standard Navigation ON'
+    	error = a*(error_laserF*250) + (error_imu*10/4) #normaliza e soma os erros
+      	kp = rospy.get_param('kp')
 		isRev = +1
       
       
     	#estado = 'RevStandardControl'
 	if (estado == 'RevStandardControl'):
 		print 'Reverse Standard Navigation ON'
-		error = a*(error_laser*250) - (error_imu*10/4) #Como o robô está de ré, o erro da IMU precisa ser invertido
+		error = a*(error_laserB*250) - (error_imu*10/4) #Como o robô está de ré, o erro da IMU precisa ser invertido
 		kp = rospy.get_param('kp')
 		isRev = -1
       
       
     	#estado = 'BifurcationControl' 
-    	if (estado == 'BifurcationControl'):
+    if (estado == 'BifurcationControl'):
 		print 'BifurcationControl ON'
 		erro_theta = theta_menor - pi/2
 		print(theta_menor*180/pi)
 		error_laser = L_menor  # Para virar para esquerda, o lado direito é ignorado
 		error = a*(erro_theta*250) + (error_imu*10/4)
-      		kp = 0.0158
+      	kp = 0.0158
 		isRev = +1
       
       
    	#estado = 'RevBifurcationControl'
-    	if (estado == 'RevBifurcationControl'):
+    if (estado == 'RevBifurcationControl'):
 		print 'RevBifurcationControl ON'
-      		erro_theta = theta_menor + pi/2
+    	erro_theta = theta_menor + pi/2
 		print(theta_menor*pi/180)
 		error_laser = L_menor 
 		error = a*(erro_theta*250) - (error_imu*10/4) #Como o robô está de ré, o erro da IMU precisa ser invertido
