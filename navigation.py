@@ -93,7 +93,7 @@ def navigation():
 
 	while not rospy.is_shutdown():    
 		#vel.linear.x = 0.8
-    	vel.linear.y = 0
+    		vel.linear.y = 0
 		vel.linear.z = 0
 		vel.angular.x = 0
 		vel.angular.y = 0
@@ -114,7 +114,7 @@ def navigation():
 		R_menor = 100 
 		L_menor = 100
 		frente = 100
-    	theta_menor = 0
+    		theta_menor = 0
     
     	for i in range(0, len(vet)): 
 			d = vet[i]   
@@ -136,42 +136,42 @@ def navigation():
     
     	a = rospy.get_param('a') # Constante para definir importância do Laser
     
-    	#estado = 'StandardControl'
-	    if (estado == 'StandardControl'):
+	#estado = 'StandardControl'
+	if (estado == 'StandardControl'):
       		print 'Standard Navigation ON'
     		error = a*(error_laser*250) + (error_imu*10/4) #normaliza e soma os erros
       		kp = rospy.get_param('kp')
-		    isRev = +1
+		isRev = +1
       
       
     	#estado = 'RevStandardControl'
-	    if (estado == 'RevStandardControl'):
-		    print 'Reverse Standard Navigation ON'
-		    error = a*(error_laser*250) - (error_imu*10/4) #Como o robô está de ré, o erro da IMU precisa ser invertido
-	    	kp = rospy.get_param('kp')
-		    isRev = -1
+	if (estado == 'RevStandardControl'):
+		print 'Reverse Standard Navigation ON'
+		error = a*(error_laser*250) - (error_imu*10/4) #Como o robô está de ré, o erro da IMU precisa ser invertido
+		kp = rospy.get_param('kp')
+		isRev = -1
       
       
     	#estado = 'BifurcationControl' 
     	if (estado == 'BifurcationControl'):
-		    print 'BifurcationControl ON'
-      		erro_theta = theta_menor - pi/2
-		    print(theta_menor*180/pi)
-		    error_laser = L_menor  # Para virar para esquerda, o lado direito é ignorado
-		    error = a*(erro_theta*250) + (error_imu*10/4)
+		print 'BifurcationControl ON'
+		erro_theta = theta_menor - pi/2
+		print(theta_menor*180/pi)
+		error_laser = L_menor  # Para virar para esquerda, o lado direito é ignorado
+		error = a*(erro_theta*250) + (error_imu*10/4)
       		kp = 0.0158
-		    isRev = +1
+		isRev = +1
       
       
-   		#estado = 'RevBifurcationControl'
+   	#estado = 'RevBifurcationControl'
     	if (estado == 'RevBifurcationControl'):
-		    print 'RevBifurcationControl ON'
+		print 'RevBifurcationControl ON'
       		erro_theta = theta_menor + pi/2
-		    print(theta_menor*pi/180)
-		    error_laser = L_menor 
-		    error = a*(erro_theta*250) - (error_imu*10/4) #Como o robô está de ré, o erro da IMU precisa ser invertido
-		    kp = 0.0158
-		    isRev = -1
+		print(theta_menor*pi/180)
+		error_laser = L_menor 
+		error = a*(erro_theta*250) - (error_imu*10/4) #Como o robô está de ré, o erro da IMU precisa ser invertido
+		kp = 0.0158
+		isRev = -1
 	
 			
 	if ((error_laser< -0.02) or (error_laser > 0.02)) or ((error_imu < -2) or (error_imu > 2)):
